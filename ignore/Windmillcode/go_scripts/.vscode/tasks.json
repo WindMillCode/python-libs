@@ -1,0 +1,37 @@
+// See https://go.microsoft.com/fwlink/?LinkId=733558
+// for the documentation about the tasks.json format
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+      "label":"misc: package project",
+      "type":"shell",
+      "windows":{
+        "command":"git add .;git commit -m'[UPDATE] addtl work';git tag ${input:misc_package_project_0};git push -u origin HEAD;git push --tags"
+      }
+    },
+		{
+      "label":"git: delete tag",
+      "type":"shell",
+      "windows":{
+        "command":"git push origin --delete  $(git tag -l '${input:git_delete_tag_0}');git tag -d $(git tag -l '${input:git_delete_tag_0}')"
+      },
+      "runOptions": {
+        "instanceLimit": 10
+      }
+    }
+	],
+  "inputs":[
+    {
+      "id": "misc_package_project_0",
+      "description": "the version for the package, remember to prefix with v so it can show up on pkg.go.dev",
+      "type": "promptString"
+    },
+    {
+      "id": "git_delete_tag_0",
+      "description": "regex version to be deleted",
+      "type": "promptString"
+    }
+  ]
+}
+
