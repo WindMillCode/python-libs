@@ -34,20 +34,38 @@ def train_with_text_data_v0():
   my_manager.run_training_process()
   my_manager.save_model_via_pytorch()
 
+
+
 def train_with_text_data_v1(myai=None):
+  # myai = myai if myai else WMLTextModelManagerOne(
+  #   model_name="CoLA.pkl",
+
+  #   dataloader_info = {
+  #     "datapipe_fn":datasets.CoLA,
+  #     "root":"data",
+  #     "get_target_pytorch_dataset_file":lambda x:"in_domain_train.tsv" if x == "train" else "out_of_domain_dev.tsv"
+  #   }
+  # )
+
   myai = myai if myai else WMLTextModelManagerOne(
-    model_name="AmazonReviewFull.pkl",
-    training_dataloader= WMLDataset(
-      datapipe=datasets.AmazonReviewFull(
-        split="train"
-      )
-    ),
-    test_dataloader= WMLDataset(
-      datapipe=datasets.AmazonReviewFull(
-        split="test"
-      )
-    )
+    model_name="IMDB.pkl",
+
+    dataloader_info = {
+      "datapipe_fn":datasets.IMDB,
+      "root":"data",
+      "get_target_pytorch_dataset_file":lambda x:"neg" if x == "train" else "out_of_domain_dev.tsv"
+    }
   )
+
+  # myai = myai if myai else WMLTextModelManagerOne(
+  #   model_name="AmazonReviewFull.pkl",
+
+  #   dataloader_info = {
+  #     "datapipe_fn":datasets.AmazonReviewFull,
+  #     "root":"data",
+
+  #   }
+  # )
 
   myai.download_train_and_test_data()
   myai.get_vocab_info()
@@ -90,11 +108,13 @@ def train_with_several_datasets():
       model_name="CoLA.pkl",
       training_dataloader= WMLDataset(
         datapipe=datasets.CoLA(
+          root="data",
           split="train"
         )
       ),
       test_dataloader= WMLDataset(
         datapipe=datasets.CoLA(
+          root="data",
           split="test"
         )
       )

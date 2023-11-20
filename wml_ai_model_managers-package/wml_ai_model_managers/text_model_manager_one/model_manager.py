@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 import torch
 import torch.nn as nn
@@ -36,6 +37,7 @@ class WMLTextModelManagerOne():
     self.reporting_loss = kwargs.get("reporting_loss", 100)
     self.learning_rate = kwargs.get("learning_rate", 3e-4)
     self.model_file_name = kwargs.get("model_name",'model-02.pkl')
+    self.dataloader_info = kwargs.get("dataloader_info")
 
 
   def chat_with_model(self):
@@ -67,28 +69,17 @@ class WMLTextModelManagerOne():
     with open(self.model_file_name,'wb') as f:
       pickle.dump(self.model,f)
 
-  def download_train_and_test_data(self,training_dataloader=None,test_dataloader=None):
-      if xor(training_dataloader,test_dataloader):
-        raise _LogicError("if you provide training_dataloader or test_dataloader you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
+  def download_train_and_test_data(self):
+      # if xor(training_dataloader,test_dataloader):
+      #   raise _LogicError("if you provide training_dataloader or test_dataloader you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
 
-
-
-      my_root = "data"
-      self.training_dataloader = training_dataloader if  training_dataloader else WMLDataset(
-        datasets.AG_NEWS(
-            root=my_root,
-            split="train",
-        )
+      self.training_dataloader =  WMLDataset(
+        dataloader_info= self.dataloader_info,split="train"
       )
 
-
-      self.test_dataloader =  test_dataloader if  test_dataloader else  WMLDataset(
-        datasets.AG_NEWS(
-          root=my_root,
-          split="test",
-        )
+      self.test_dataloader = WMLDataset(
+        dataloader_info= self.dataloader_info,split="test"
       )
-
 
 
   def get_vocab_info(self):
@@ -102,15 +93,22 @@ class WMLTextModelManagerOne():
     self.encode = lambda s: [string_to_int[c] for c in s]
     self.decode = lambda l: ''.join([int_to_string[i] for i in l])
 
+
   def get_random_chunk(self,split):
       my_dataset = self.training_dataloader if split == 'train' else self.test_dataloader
+      with open(my_dataset.dataset_file, 'rb') as f:
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            file_size = len(mm)
+            start_pos = random.randint(
+              0, (file_size) - self.block_size*self.batch_size)
+
+            mm.seek(start_pos)
+            block = mm.read(self.block_size*self.batch_size-1)
+
+            decoded_block = block.decode('utf-8', errors='ignore').replace('\r', '')
 
 
-      chunk_size = self.block_size*self.batch_size
-      random_chunk = my_dataset.get_random_chunk(chunk_size)
-
-
-      return torch.tensor(self.encode(random_chunk), dtype=torch.long)
+            return torch.tensor(self.encode(decoded_block), dtype=torch.long)
 
   def get_batch(self,split):
       data = self.get_random_chunk(split)
@@ -122,6 +120,7 @@ class WMLTextModelManagerOne():
       return x, y
 
   def train(self):
+    print("Starting Training Session")
     context = torch.zeros((1,1), dtype=torch.long, device=self.device)
     generated_chars = self.decode(self.m.generate(context, max_new_tokens=self.vocab_size)[0].tolist())
 
@@ -145,11 +144,16 @@ class WMLTextModelManagerOne():
     optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
     print("Starting Training Session")
     for iter in range(self.max_iters):
+        start_time = time.time()
         self.iters_left = self.max_iters - iter
-        print(iter % self.reporting_loss)
         if iter % self.reporting_loss == 0:
             losses = self.estimate_loss()
-            print(f"step: {iter}, train loss: {losses['train']:.3f}, val loss: {losses['val']:.3f}")
+            end_time = time.time()
+            elapsed_time_seconds = end_time - start_time
+            hours, remainder = divmod(elapsed_time_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            print(f"step: {iter}, train loss: {losses['train']:.3f}, val loss: {losses['val']:.3f}, elapsed time: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds")
+
             self.save_model()
         # if iter % 500 == 0:
         # sample a batch of data

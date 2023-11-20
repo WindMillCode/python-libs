@@ -8,6 +8,8 @@ WMLText
 =======
 
 A package with several AI classes making it easy to train data based on pytorch.
+All pytorch torchtext models are supported
+you can leverge torch.Subset to create train and val splits if the dataset does not provide a split propery
 
 Initialization
 --------------
