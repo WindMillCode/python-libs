@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 import torch
 import torch.nn as nn
@@ -36,6 +37,8 @@ class WMLTextModelManagerOne():
     self.reporting_loss = kwargs.get("reporting_loss", 100)
     self.learning_rate = kwargs.get("learning_rate", 3e-4)
     self.model_file_name = kwargs.get("model_name",'model-02.pkl')
+    self.training_dataloader = kwargs.get("training_dataloader",None)
+    self.test_dataloader = kwargs.get("test_dataloader",None)
 
 
   def chat_with_model(self):
@@ -67,27 +70,28 @@ class WMLTextModelManagerOne():
     with open(self.model_file_name,'wb') as f:
       pickle.dump(self.model,f)
 
-  def download_train_and_test_data(self,training_dataloader=None,test_dataloader=None):
-      if xor(training_dataloader,test_dataloader):
+  def download_train_and_test_data(self):
+      if xor(self.training_dataloader,self.test_dataloader):
         raise _LogicError("if you provide training_dataloader or test_dataloader you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
 
 
 
       my_root = "data"
-      self.training_dataloader = training_dataloader if  training_dataloader else WMLDataset(
-        datasets.AG_NEWS(
+      if  self.training_dataloader == None:
+        self.training_dataloader = WMLDataset(
+          datasets.AG_NEWS(
             root=my_root,
             split="train",
+          )
         )
-      )
 
-
-      self.test_dataloader =  test_dataloader if  test_dataloader else  WMLDataset(
-        datasets.AG_NEWS(
-          root=my_root,
-          split="test",
+      if  self.test_dataloader == None:
+        self.test_dataloader = WMLDataset(
+          datasets.AG_NEWS(
+            root=my_root,
+            split="test",
+          )
         )
-      )
 
 
 
@@ -104,8 +108,6 @@ class WMLTextModelManagerOne():
 
   def get_random_chunk(self,split):
       my_dataset = self.training_dataloader if split == 'train' else self.test_dataloader
-
-
       chunk_size = self.block_size*self.batch_size
       random_chunk = my_dataset.get_random_chunk(chunk_size)
 
@@ -122,6 +124,7 @@ class WMLTextModelManagerOne():
       return x, y
 
   def train(self):
+    print("Starting Training Session")
     context = torch.zeros((1,1), dtype=torch.long, device=self.device)
     generated_chars = self.decode(self.m.generate(context, max_new_tokens=self.vocab_size)[0].tolist())
 
@@ -143,14 +146,20 @@ class WMLTextModelManagerOne():
   def create_optimizer(self):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
-    print("Starting Training Session")
-    for iter in range(self.max_iters):
+
+    start_time = time.time()
+    end_time = time.time()
+    for iter in tqdm(range(self.max_iters),total=self.max_iters):
         self.iters_left = self.max_iters - iter
-        print(iter % self.reporting_loss)
         if iter % self.reporting_loss == 0:
             losses = self.estimate_loss()
-            print(f"step: {iter}, train loss: {losses['train']:.3f}, val loss: {losses['val']:.3f}")
+            end_time = time.time()
+            elapsed_time_seconds = end_time - start_time
+            hours, remainder = divmod(elapsed_time_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            print(f"\nstep: {iter}, train loss: {losses['train']:.3f}, val loss: {losses['val']:.3f}, elapsed time: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds")
             self.save_model()
+            start_time = time.time()
         # if iter % 500 == 0:
         # sample a batch of data
         xb, yb = self.get_batch('train')

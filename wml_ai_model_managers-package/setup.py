@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 DESCRIPTION = 'A package for training and communicating with AI chatbots based on pytorch'
 LONG_DESCRIPTION = """
 =======
@@ -71,9 +71,16 @@ Class Initialization Properties
 - ``learning_rate``.
 - ``block_size``.
 - ``batch_size``.
+
+Changelog
+--------------
+
+- v0.0.2
+    corrected issues with the dataloader where the model_manager would not receive
+    the training and test dataloaders
 """
 
-# Now you can use the variable 'long_description' as needed in your script.
+
 
 setup(
     name="wml_ai_model_managers",

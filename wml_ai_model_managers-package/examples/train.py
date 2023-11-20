@@ -90,11 +90,13 @@ def train_with_several_datasets():
       model_name="CoLA.pkl",
       training_dataloader= WMLDataset(
         datapipe=datasets.CoLA(
+          root="data",
           split="train"
         )
       ),
       test_dataloader= WMLDataset(
         datapipe=datasets.CoLA(
+          root="data",
           split="test"
         )
       )
@@ -115,15 +117,15 @@ def train_with_several_datasets():
   ]
 
   for myai in myais:
-    train_with_text_data_v1(myai)
-    # my_thread = threading.Thread(
-    #   target=train_with_text_data_v1,
-    #   args=[
-    #     myai
-    #   ],
-    #   daemon=True
-    # )
-    # my_thread.start()
+    # train_with_text_data_v1(myai)
+    my_thread = threading.Thread(
+      target=train_with_text_data_v1,
+      args=[
+        myai
+      ],
+      daemon=True
+    )
+    my_thread.start()
 
 
 if __name__ == '__main__':
