@@ -35,7 +35,7 @@ class WMLTextModelManagerOne():
     self.dropout = kwargs.get("dropout", 0.1)
     self.reporting_loss = kwargs.get("reporting_loss", 100)
     self.learning_rate = kwargs.get("learning_rate", 3e-4)
-    self.model_name = kwargs.get("model_name",'model-02.pkl')
+    self.model_file_name = kwargs.get("model_name",'model-02.pkl')
 
 
   def chat_with_model(self):
@@ -45,7 +45,7 @@ class WMLTextModelManagerOne():
         generated_chars = self.decode(self.m.generate(context.unsqueeze(0), max_new_tokens=150)[0].tolist())
         print(f'Completion:\n{generated_chars}')
 
-  def get_model_from_scratch(self):
+  def load_model_from_scratch(self):
     self.model = WMLTextOneModel(
       vocab_size=self.vocab_size,
       block_size=self.block_size,
@@ -57,17 +57,17 @@ class WMLTextModelManagerOne():
     )
     self.m = self.model.to(self.device)
 
-  def get_model_from_file(self):
-    with open(self.model_name, 'rb') as f:
+  def load_model_from_file(self):
+    with open(self.model_file_name, 'rb') as f:
         self.model = pickle.load(f)
     print('loaded successfully!')
     self.m = self.model.to(self.device)
 
   def save_model(self):
-    with open(self.model_name,'wb') as f:
+    with open(self.model_file_name,'wb') as f:
       pickle.dump(self.model,f)
 
-  def download_train_and_test_dataloader(self,training_dataloader=None,test_dataloader=None):
+  def download_train_and_test_data(self,training_dataloader=None,test_dataloader=None):
       if xor(training_dataloader,test_dataloader):
         raise _LogicError("if you provide training_dataloader or test_dataloader you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
 
@@ -146,6 +146,7 @@ class WMLTextModelManagerOne():
     print("Starting Training Session")
     for iter in range(self.max_iters):
         self.iters_left = self.max_iters - iter
+        print(iter % self.reporting_loss)
         if iter % self.reporting_loss == 0:
             losses = self.estimate_loss()
             print(f"step: {iter}, train loss: {losses['train']:.3f}, val loss: {losses['val']:.3f}")

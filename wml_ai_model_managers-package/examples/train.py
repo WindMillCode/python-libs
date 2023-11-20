@@ -36,14 +36,14 @@ def train_with_text_data_v0():
 
 def train_with_text_data_v1(myai=None):
   myai = myai if myai else WMLTextModelManagerOne(
-    model_name="CNNDM.pkl",
+    model_name="AmazonReviewFull.pkl",
     training_dataloader= WMLDataset(
-      datapipe=datasets.CNNDM(
+      datapipe=datasets.AmazonReviewFull(
         split="train"
       )
     ),
     test_dataloader= WMLDataset(
-      datapipe=datasets.CNNDM(
+      datapipe=datasets.AmazonReviewFull(
         split="test"
       )
     )
@@ -52,7 +52,7 @@ def train_with_text_data_v1(myai=None):
   myai.download_train_and_test_data()
   myai.get_vocab_info()
   myai.get_encoders()
-  myai.get_model_from_scratch()
+  myai.load_model_from_scratch()
   myai.train()
   myai.estimate_loss()
   myai.create_optimizer()
@@ -60,33 +60,32 @@ def train_with_text_data_v1(myai=None):
 
 def train_with_several_datasets():
   myais = [
-    None,
-    WMLTextModelManagerOne(
-      model_name="CNNDM.pkl",
-      training_dataloader= WMLDataset(
-        datapipe=datasets.CNNDM(
-          split="train"
-        )
-      ),
-      test_dataloader= WMLDataset(
-        datapipe=datasets.CNNDM(
-          split="test"
-        )
-      )
-    ),
-    WMLTextModelManagerOne(
-      model_name="AmazonReviewPolarity.pkl",
-      training_dataloader= WMLDataset(
-        datapipe=datasets.AmazonReviewPolarity(
-          split="train"
-        )
-      ),
-      test_dataloader= WMLDataset(
-        datapipe=datasets.AmazonReviewPolarity(
-          split="test"
-        )
-      )
-    ),
+    # WMLTextModelManagerOne(
+    # model_name="CNNDM.pkl",
+    #   training_dataloader= WMLDataset(
+    #     datapipe=datasets.CNNDM(
+    #       split="train"
+    #     )
+    #   ),
+    #   test_dataloader= WMLDataset(
+    #     datapipe=datasets.CNNDM(
+    #       split="test"
+    #     )
+    #   )
+    # ),
+    # WMLTextModelManagerOne(
+    #   model_name="AmazonReviewPolarity.pkl",
+    #   training_dataloader= WMLDataset(
+    #     datapipe=datasets.AmazonReviewPolarity(
+    #       split="train"
+    #     )
+    #   ),
+    #   test_dataloader= WMLDataset(
+    #     datapipe=datasets.AmazonReviewPolarity(
+    #       split="test"
+    #     )
+    #   )
+    # ),
     WMLTextModelManagerOne(
       model_name="CoLA.pkl",
       training_dataloader= WMLDataset(
@@ -100,30 +99,33 @@ def train_with_several_datasets():
         )
       )
     ),
-    WMLTextModelManagerOne(
-      training_dataloader= WMLDataset(
-        datapipe=datasets.CoNLL2000Chunking(
-          split="train"
-        )
-      ),
-      test_dataloader= WMLDataset(
-        datapipe=datasets.CoNLL2000Chunking(
-          split="test"
-        )
-      )
-    )
+    # WMLTextModelManagerOne(
+    #   model_name="CoNLL2000Chunking.pkl",
+    #   training_dataloader= WMLDataset(
+    #     datapipe=datasets.CoNLL2000Chunking(
+    #       split="train"
+    #     )
+    #   ),
+    #   test_dataloader= WMLDataset(
+    #     datapipe=datasets.CoNLL2000Chunking(
+    #       split="test"
+    #     )
+    #   )
+    # )
   ]
 
   for myai in myais:
-    my_thread = threading.Thread(
-      target=train_with_text_data_v1,
-      args=[
-        myai
-      ],
-      daemon=True
-    )
-    my_thread.start()
+    train_with_text_data_v1(myai)
+    # my_thread = threading.Thread(
+    #   target=train_with_text_data_v1,
+    #   args=[
+    #     myai
+    #   ],
+    #   daemon=True
+    # )
+    # my_thread.start()
 
 
 if __name__ == '__main__':
-  train_with_several_datasets()
+  # train_with_several_datasets()
+  train_with_text_data_v1()
