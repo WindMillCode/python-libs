@@ -56,15 +56,7 @@ class WMLTextModelManagerZero():
 
 
   def get_model_from_scratch(self):
-    # self.model = WMLTextModelZero(
-    #   vocab_size=self.vocab_size,
-    #   block_size=self.block_size,
-    #   n_embd=self.n_embd,
-    #   n_layer=self.n_layer,
-    #   device=self.device,
-    #   n_head=self.n_head,
-    #   dropout=self.dropout
-    # )
+
     self.model = WMLNeuralNetworkZero()
 
 

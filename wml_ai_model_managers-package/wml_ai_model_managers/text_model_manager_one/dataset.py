@@ -3,24 +3,22 @@
 
 import itertools
 import random
+import torch
 import torchdata
 
 
 class WMLDataset():
 
-  def __init__(self,datapipe):
+  def __init__(self,datapipe,**kwargs):
+
+    self.device =  kwargs.get("device",'cuda' if torch.cuda.is_available() else 'cpu')
+    print("Loading data set into dataloader")
     self.datapipe = datapipe
     self.datapipe_as_list = list(self.datapipe)
     self.dataset_size = 0
     self.chars = ""
-    vocab = set()
     self.full_data =" ".join(list(map(lambda x:x[1],self.datapipe_as_list)))
-
-    for label, line in self.datapipe:
-      characters = set(line)
-      vocab.update(characters)
-      # self.full_data += line
-
+    vocab = set(self.full_data)
     self.dataset_size = len(self.full_data)
     self.chars = sorted(vocab)
     self.vocab_size = len(self.chars)

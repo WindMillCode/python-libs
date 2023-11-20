@@ -67,13 +67,14 @@ class WMLTextModelManagerOne():
     with open(self.model_name,'wb') as f:
       pickle.dump(self.model,f)
 
-  def download_train_and_test_data(self,training_data=None,test_data=None):
-      if xor(training_data,test_data):
-        raise _LogicError("if you provide training_data or test_data you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
+  def download_train_and_test_dataloader(self,training_dataloader=None,test_dataloader=None):
+      if xor(training_dataloader,test_dataloader):
+        raise _LogicError("if you provide training_dataloader or test_dataloader you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
+
 
 
       my_root = "data"
-      self.training_data = training_data if  training_data else WMLDataset(
+      self.training_dataloader = training_dataloader if  training_dataloader else WMLDataset(
         datasets.AG_NEWS(
             root=my_root,
             split="train",
@@ -81,19 +82,18 @@ class WMLTextModelManagerOne():
       )
 
 
-      self.test_data =  test_data if  test_data else  WMLDataset(
+      self.test_dataloader =  test_dataloader if  test_dataloader else  WMLDataset(
         datasets.AG_NEWS(
           root=my_root,
           split="test",
         )
       )
-      self.test_data.datapipe
 
 
 
   def get_vocab_info(self):
 
-    self.chars = sorted(set( self.training_data.chars + self.test_data.chars))
+    self.chars = sorted(set( self.training_dataloader.chars + self.test_dataloader.chars))
     self.vocab_size = len(self.chars)
 
   def get_encoders(self):
@@ -103,7 +103,7 @@ class WMLTextModelManagerOne():
     self.decode = lambda l: ''.join([int_to_string[i] for i in l])
 
   def get_random_chunk(self,split):
-      my_dataset = self.training_data if split == 'train' else self.test_data
+      my_dataset = self.training_dataloader if split == 'train' else self.test_dataloader
 
 
       chunk_size = self.block_size*self.batch_size
@@ -143,7 +143,7 @@ class WMLTextModelManagerOne():
   def create_optimizer(self):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
-
+    print("Starting Training Session")
     for iter in range(self.max_iters):
         self.iters_left = self.max_iters - iter
         if iter % self.reporting_loss == 0:
