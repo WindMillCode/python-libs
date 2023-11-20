@@ -2,20 +2,20 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 
-from wml_ai_model_managers.text_model_manager_zero.feedforward import WMLFeedFoward
-from wml_ai_model_managers.text_model_manager_zero.multi_head_attention import WMLMultiHeadAttention
+from wml_ai_model_managers.text_model_manager_one.feedforward import WMLTextOneFeedFoward
+from wml_ai_model_managers.text_model_manager_one.multi_head_attention import WMLTextOneMultiHead
 
 
 
-class WMLBlock(nn.Module):
+class WMLTextOneBlock(nn.Module):
     """ Transformer block: communication followed by computation """
 
     def __init__(self, n_embd, n_head,dropout,block_size):
         # n_embd: embedding dimension, n_head: the number of heads we'd like
         super().__init__()
         head_size = n_embd // n_head
-        self.sa = WMLMultiHeadAttention(n_head, head_size,dropout,n_embd,block_size)
-        self.ffwd = WMLFeedFoward(n_embd,dropout)
+        self.sa = WMLTextOneMultiHead(n_head, head_size,dropout,n_embd,block_size)
+        self.ffwd = WMLTextOneFeedFoward(n_embd,dropout)
         self.ln1 = nn.LayerNorm(n_embd)
         self.ln2 = nn.LayerNorm(n_embd)
 

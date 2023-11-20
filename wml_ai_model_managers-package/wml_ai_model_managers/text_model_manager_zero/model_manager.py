@@ -1,4 +1,4 @@
-from operator import xor
+
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -10,16 +10,19 @@ import random
 import pickle
 import argparse
 
-from model import WMLTextModelZero
-from block import WMLBlock
-from feedforward import WMLFeedFoward
-from multi_head_attention import WMLMultiHeadAttention
-from head import WMLHead
-from wml_utils.error_utils import _LogicError
+from wml_ai_model_managers.text_model_manager_zero.model import WMLTextModelZero,WMLNeuralNetworkZero
+from wml_ai_model_managers.text_model_manager_zero.block import WMLBlock
+from wml_ai_model_managers.text_model_manager_zero.feedforward import WMLFeedFoward
+from wml_ai_model_managers.text_model_manager_zero.multi_head_attention import WMLMultiHeadAttention
+from wml_ai_model_managers.text_model_manager_zero.head import WMLHead
+from wml_ai_model_managers.wml_utils.error_utils import _LogicError
+from wml_ai_model_managers.wml_utils.common_utils import xor
 
 
 
 class WMLTextModelManagerZero():
+
+
   def __init__(self,
     block_size =  128,
     batch_size = 64,
@@ -53,47 +56,54 @@ class WMLTextModelManagerZero():
 
 
   def get_model_from_scratch(self):
-    self.model = WMLTextModelZero(
-      vocab_size=self.vocab_size,
-      block_size=self.block_size,
-      n_embd=self.n_embd,
-      n_layer=self.n_layer,
-      device=self.device,
-      n_head=self.n_head,
-      dropout=self.dropout
-    )
-    self.m = self.model.to(self.device)
+    # self.model = WMLTextModelZero(
+    #   vocab_size=self.vocab_size,
+    #   block_size=self.block_size,
+    #   n_embd=self.n_embd,
+    #   n_layer=self.n_layer,
+    #   device=self.device,
+    #   n_head=self.n_head,
+    #   dropout=self.dropout
+    # )
+    self.model = WMLNeuralNetworkZero()
 
 
 
   def download_train_and_test_data(self,training_data=None,test_data=None):
-      if not xor(training_data,test_data):
+      if xor(training_data,test_data):
         raise _LogicError("if you provide training_data or test_data you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
 
 
       self.training_data = training_data if  training_data else   datasets.AmazonReviewFull(
           root="data",
-          train=True,
-          download=True
+          split="train"
       )
 
       self.test_data =  test_data if  test_data else  datasets.AmazonReviewFull(
           root="data",
-          train=False,
-          download=True
+          split="test"
       )
 
   def create_data_loaders(self):
-    self.batch_size = 64
     self.train_dataloader = DataLoader(
       self.training_data, batch_size=self.batch_size)
     self.test_dataloader =  DataLoader(
       self.test_data, batch_size=self.batch_size)
 
     for X, y in self.test_dataloader:
-        print(f"Shape of X  {X.shape}")
-        print(f"Shape of y {y.shape} {y.dtype}")
+        print(f"Shape of X [N, C, H, W]: {X.shape}")
+        print(f"Shape of y:  {type(y)}")
         break
+
+  def get_vocab_info(self):
+    self.vocab = set()
+    for X,y in zip(
+      self.train_dataloader.dataset,
+      self.test_dataloader.dataset
+    ):
+      characters = set(X[1])
+      self.vocab.update(characters)
+    self.vocab_size = len(self.vocab)
 
   def get_device(self,device=None):
     self.device = device if device else (
@@ -106,7 +116,7 @@ class WMLTextModelManagerZero():
 
 
   def place_model_on_device(self):
-    self.model = WMLTextModelZero().to(self.device)
+    self.model = self.model.to(self.device)
 
   def create_loss_fn(self):
       self.loss_fn = nn.CrossEntropyLoss()
@@ -117,41 +127,50 @@ class WMLTextModelManagerZero():
 
   def train(self,dataloader=None):
       dataloader = dataloader if dataloader else self.train_dataloader
+      # print(type(dataloader.dataset))
       size = len(dataloader.dataset)
       self.model.train()
       for batch, (X, y) in enumerate(dataloader):
+          y = torch.tensor(y)
           X, y = X.to(self.device), y.to(self.device)
 
           # Compute prediction error
-          # pred = self.model(X)
-          # loss = self.loss_fn(pred, y)
-          logits, loss = self.model.forward(X, y)
-          self.optimizer.zero_grad(set_to_none=True)
+          pred = self.model(X)
+          loss = self.loss_fn(pred, y)
+
+          # Backpropagation
           loss.backward()
           self.optimizer.step()
+          self.optimizer.zero_grad()
 
           if batch % 100 == 0:
               loss, current = loss.item(), (batch + 1) * len(X)
-              print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+              print(f"loss: {loss:>7f}  [{current:>5d}]")
 
 
   def test(self,dataloader=None):
       dataloader = dataloader if dataloader else self.test_dataloader
-      size = len(dataloader.dataset)
+
       num_batches = len(dataloader)
       self.model.eval()
       test_loss, correct = 0, 0
       with torch.no_grad():
           for X, y in dataloader:
               X, y = X.to(self.device), y.to(self.device)
-              pred = self.model(X,y)
+              pred = self.model(X)
               test_loss += self.loss_fn(pred, y).item()
               correct += (pred.argmax(1) == y).type(torch.float).sum().item()
       test_loss /= num_batches
-      correct /= size
-      print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+      print(f"Test Error: \n Accuracy:  Avg loss: {test_loss:>8f} \n")
 
+  def run_training_process(self):
+    epochs = 5
 
+    for t in range(epochs):
+        print(f"Epoch {t+1}\n-------------------------------")
+        self.train(self.train_dataloader)
+        self.test(self.test_dataloader)
+    print("Done!")
 
   @torch.no_grad()
   def estimate_loss(self):
@@ -173,7 +192,7 @@ class WMLTextModelManagerZero():
     with open(file, 'rb') as f:
         self.model = pickle.load(f)
     self.debug('loaded successfully!')
-    self.m = self.model.to(self.device)
+    self.model = self.model.to(self.device)
 
   def save_model_via_pickle(self,file='model-01.pkl'):
     with open(file,'wb') as f:
@@ -193,7 +212,7 @@ class WMLTextModelManagerZero():
         prompt = input("Prompt:\n")
         context = torch.tensor(self.encode(prompt), dtype=torch.long, device=self.device)
         generated_chars = self.decode(
-          self.m.generate(
+          self.model.generate(
             context.unsqueeze(0), max_new_tokens=max_new_tokens)[0].tolist())
         self.debug(f'Completion:\n{generated_chars}')
 

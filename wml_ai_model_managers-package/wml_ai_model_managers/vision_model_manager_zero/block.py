@@ -2,8 +2,8 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 
-from feedforward import FeedFoward
-from multi_head_attention import MultiHeadAttention
+from wml_ai_model_managers.vision_model_manager_zero.feedforward import FeedFoward
+from wml_ai_model_managers.vision_model_manager_zero.multi_head_attention import MultiHeadAttention
 
 
 

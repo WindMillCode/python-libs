@@ -6,16 +6,16 @@ import random
 import pickle
 import argparse
 
-from wml_ai_model_managers.vision_model_manager_zero.block import Block
+from wml_ai_model_managers.text_model_manager_one.block import WMLTextOneBlock
 
 
-class GPTLanguageModel(nn.Module):
+class WMLTextOneModel(nn.Module):
 
     def __init__(self, vocab_size,block_size,n_embd,n_head,n_layer,device,dropout):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
         self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.blocks = nn.Sequential(*[Block(
+        self.blocks = nn.Sequential(*[WMLTextOneBlock(
           n_embd=n_embd,
           n_head=n_head,
           dropout=dropout,

@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
-from wml_utils.error_utils import LogicError
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import mmap
@@ -11,11 +10,12 @@ import random
 import pickle
 import argparse
 
-from vision_model_manager_zero.model import GPTLanguageModel
-from vision_model_manager_zero.block import Block
-from vision_model_manager_zero.feedforward import FeedFoward
-from vision_model_manager_zero.multi_head_attention import MultiHeadAttention
-from vision_model_manager_zero.head import Head
+from wml_ai_model_managers.wml_utils.error_utils import _LogicError
+from wml_ai_model_managers.vision_model_manager_zero.model import GPTLanguageModel
+from wml_ai_model_managers.vision_model_manager_zero.block import Block
+from wml_ai_model_managers.vision_model_manager_zero.feedforward import FeedFoward
+from wml_ai_model_managers.vision_model_manager_zero.multi_head_attention import MultiHeadAttention
+from wml_ai_model_managers.vision_model_manager_zero.head import Head
 
 
 
@@ -68,7 +68,7 @@ class WMLVisionModelManager0():
 
   def download_train_and_test_data(self,training_data=None,test_data=None):
       if not xor(training_data,test_data):
-        raise LogicError("if you provide training_data or test_data you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
+        raise _LogicError("if you provide training_data or test_data you must provide the other or else you be testining your training data with a different dataset! If you dont know this is bad!")
 
 
       self.training_data = training_data if  training_data else   datasets.AmazonReviewFull(

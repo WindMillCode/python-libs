@@ -6,7 +6,7 @@ import random
 import pickle
 import argparse
 
-from block import WMLBlock
+from wml_ai_model_managers.text_model_manager_zero.block import WMLBlock
 
 
 class WMLTextModelZero(nn.Module):
@@ -75,6 +75,24 @@ class WMLTextModelZero(nn.Module):
             index = torch.cat((index, index_next), dim=1) # (B, T+1)
         return index
 
+
+
+class WMLNeuralNetworkZero(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(28*28, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512, 10)
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
 
 
 

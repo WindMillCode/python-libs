@@ -2,10 +2,10 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 
-from wml_ai_model_managers.text_model_manager_zero.head import WMLHead
+from wml_ai_model_managers.text_model_manager_one.head import WMLTextOneHead
 
 
-class WMLFeedFoward(nn.Module):
+class WMLTextOneFeedFoward(nn.Module):
     """ a simple linear layer followed by a non-linearity """
 
     def __init__(self, n_embd,dropout):

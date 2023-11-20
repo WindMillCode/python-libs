@@ -2,7 +2,7 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 
-from head import Head
+from wml_ai_model_managers.vision_model_manager_zero.head import Head
 
 
 class FeedFoward(nn.Module):

@@ -2,7 +2,7 @@ from torch import nn
 import torch
 from torch.nn import functional as F
 
-from head import WMLHead
+from wml_ai_model_managers.text_model_manager_zero.head import WMLHead
 
 
 class WMLMultiHeadAttention(nn.Module):
