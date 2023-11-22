@@ -1,3 +1,5 @@
+# WML AI Model Managers
+
 A package with several AI classes making it easy to train data based on PyTorch.
 
 ## Initialization
@@ -80,4 +82,11 @@ myai.chat_with_model(500)
 - instead of providing a dataloader argument to the modelManger provide dataloader_info according to the example above
 
 ### v1.0.1
-* abstracted more fns into 
+* abstracted more fns into
+
+### v1.1.0
+* changed from load_model_from_file to load_model_from_pickle_file
+* changed from save_model_to_pickle to save_model_to_pickle_file
+
+### v1.1.1
+* fixed a bug with v1.1.0

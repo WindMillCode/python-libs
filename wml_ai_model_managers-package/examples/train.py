@@ -20,9 +20,10 @@ def train_with_text_data_v1(myai=None):
   )
 
   myai.download_train_and_test_data()
-  myai.load_model_from_scratch()
+  # myai.load_model_from_scratch()
+  myai.load_model_from_pickle_file()
   myai.train()
-  myai.save_model_to_pickle()
+  myai.save_model_to_pickle_file()
 
 
 if __name__ == '__main__':

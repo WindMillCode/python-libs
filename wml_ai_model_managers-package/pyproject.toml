@@ -1,6 +1,6 @@
 [project]
 name = "wml_ai_model_managers"
-version = "1.0.1"
+version = "1.1.1"
 authors = [
   { name="Windmillcode", email="dev@windmillcode.com" },
 ]

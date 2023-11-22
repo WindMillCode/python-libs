@@ -62,13 +62,13 @@ class WMLTextModelManagerOne():
     )
     self.m = self.model.to(self.device)
 
-  def load_model_from_file(self):
+  def load_model_from_pickle_file(self):
     with open(self.model_file_name, 'rb') as f:
         self.model = pickle.load(f)
     print('loaded successfully!')
     self.m = self.model.to(self.device)
 
-  def save_model_to_pickle(self):
+  def save_model_to_pickle_file(self):
     with open(self.model_file_name,'wb') as f:
       pickle.dump(self.model,f)
 
@@ -182,7 +182,7 @@ class WMLTextModelManagerOne():
             hours, remainder = divmod(elapsed_time_seconds, 3600)
             minutes, seconds = divmod(remainder, 60)
             print(f"step: {iter}, train loss: {losses['train']:.3f}, val loss: {losses['val']:.3f}, elapsed time: {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds")
-            self.save_model_to_pickle()
+            self.save_model_to_pickle_file()
             start_time = time.time()
         # if iter % 500 == 0:
         # sample a batch of data

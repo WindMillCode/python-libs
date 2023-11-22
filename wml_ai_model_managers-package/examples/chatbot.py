@@ -22,7 +22,7 @@ myai =  WMLTextModelManagerOne(
   )
 
 myai.download_train_and_test_data()
-myai.load_model_from_file()
+myai.load_model_from_pickle_file()
 myai.chat_with_model(500)
 
 
