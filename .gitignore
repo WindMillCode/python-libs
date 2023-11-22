@@ -2,4 +2,4 @@ secret
 python-libs
 demo-package
 ignore
-
+examples/data

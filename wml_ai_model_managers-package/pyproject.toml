@@ -1,0 +1,20 @@
+[project]
+name = "wml_ai_model_managers"
+version = "1.0.1"
+authors = [
+  { name="Windmillcode", email="dev@windmillcode.com" },
+]
+description = "A package for training and communicating with AI chatbots based on pytorch"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+]
+
+[project.urls]
+Github = "https://github.com/WindMillCode/python-libs/tree/main/wml_ai_model_managers-package"
+

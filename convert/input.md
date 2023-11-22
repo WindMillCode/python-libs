@@ -7,7 +7,7 @@ To initialize:
 ```python
 # Make sure the test and train data come from the same dataset
 myai = WMLTextModelManagerOne(
-    model_name="AmazonReviewFull.pkl",
+    model_file_name="AmazonReviewFull.pkl",
     training_dataloader=WMLDataset(
         datapipe=datasets.AmazonReviewFull(
             split="train"

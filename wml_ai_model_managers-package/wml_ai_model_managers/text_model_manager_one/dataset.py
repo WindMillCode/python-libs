@@ -52,7 +52,7 @@ class WMLDataset():
       self.chars = ""
 
       self.full_data =" ".join(list(map(self.pull_sentence_from_tuple,self.datapipe_as_list)))
-
+      self.dataset_size = len(self.full_data)
       self.get_vocab_info()
 
   def get_vocab_info(self):
@@ -62,11 +62,11 @@ class WMLDataset():
         with open(self.vocab_file_path,"r",encoding="utf-8") as f:
           vocab = set(f.read())
       except BaseException as e:
+
         vocab = set(self.full_data)
       if len(vocab) == 0:
         vocab = set(self.full_data)
 
-      self.dataset_size = len(self.full_data)
       self.chars = sorted(vocab)
       self.vocab_size = len(self.chars)
       create_and_write_to_file(self.vocab_file_path,"".join(self.chars))

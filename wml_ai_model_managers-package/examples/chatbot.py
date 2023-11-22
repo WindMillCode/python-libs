@@ -13,22 +13,17 @@ from torchtext import datasets
 
 
 myai =  WMLTextModelManagerOne(
-    model_name="AmazonReviewFull.pkl",
-    training_dataloader= WMLDataset(
-      datapipe=datasets.AmazonReviewFull(
-        split="train"
-      )
-    ),
-    test_dataloader= WMLDataset(
-      datapipe=datasets.AmazonReviewFull(
-        split="test"
-      )
-    )
+    model_file_name="AmazonReviewFull.pkl",
+    dataloader_info ={
+      "datapipe_fn":datasets.AmazonReviewFull,
+      "vocab_folder_path":"data/AmazonReviewFull",
+      "get_dataset":False
+    },
   )
 
 myai.download_train_and_test_data()
 myai.load_model_from_file()
-myai.chat_with_model()
+myai.chat_with_model(500)
 
 
 

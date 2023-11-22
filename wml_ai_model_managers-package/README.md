@@ -7,18 +7,13 @@ To initialize:
 ```python
 # Make sure the test and train data come from the same dataset
 myai = WMLTextModelManagerOne(
-    model_name="AmazonReviewFull.pkl",
-    training_dataloader=WMLDataset(
-        datapipe=datasets.AmazonReviewFull(
-            split="train"
-        )
-    ),
-    test_dataloader=WMLDataset(
-        datapipe=datasets.AmazonReviewFull(
-            split="test"
-        )
-    )
-)
+    model_file_name="AmazonReviewFull.pkl",
+    dataloader_info ={
+      "datapipe_fn":datasets.AmazonReviewFull,
+      "vocab_folder_path":"data/AmazonReviewFull",
+      "get_dataset":True
+    }
+  )
 ```
 
 ## Training
@@ -26,12 +21,10 @@ myai = WMLTextModelManagerOne(
 To train:
 
 ```python
-myai.download_train_and_test_data()
-myai.load_model_from_scratch()
-myai.train()
-myai.estimate_loss()
-myai.create_optimizer()
-myai.save_model_to_pickle()
+  myai.download_train_and_test_data()
+  myai.load_model_from_scratch()
+  myai.train()
+  myai.save_model_to_pickle()
 ```
 
 ## Chat
@@ -39,14 +32,28 @@ myai.save_model_to_pickle()
 To chat:
 
 ```python
+myai =  WMLTextModelManagerOne(
+    model_file_name="AmazonReviewFull.pkl",
+    dataloader_info ={
+      "datapipe_fn":datasets.AmazonReviewFull,
+      "vocab_folder_path":"data/AmazonReviewFull",
+      "get_dataset":False
+    },
+  )
+
 myai.download_train_and_test_data()
 myai.load_model_from_file()
-myai.chat_with_model()
+# the default is 150 but we increased to 500 the limit should be myai.batch_size * myai.block_size but see if you can get larger than this
+myai.chat_with_model(500)
 ```
 
 ## Class Initialization Properties
 
 - `device`: Specifies whether to use CUDA, CPU, or lets it be determined by available computer hardware.
+- `dataloader_info`: Important information about the pytorch dataset the model manager needs to retrieve the dataset
+    - `datapipe_fn`: One of the various pytorch datapipes which can be found here https://pytorch.org/text/stable/datasets.html. You can implement your own custom datapipe fn as the model is looking for an IterDataPipe, make sure your custom fn have train and test splits.
+    - `vocab_folder_path`: Where the vocab file for the dataset will be stored. it will store test-vocab.txt and train-vocab.txt.
+    - `get_dataset`: Set to false if communicating with chatbot set to true if doing a training session.
 - `max_iters`: Number of iterations for the entire training run.
 - `n_embd`: Number of embeddings.
 - `n_head`: Number of heads for multihead attention.
@@ -67,4 +74,10 @@ myai.chat_with_model()
 ### v0.0.3:
 
 - Changed the default block and batch sizes so beginners can feel more tangible results.
+- Refactored
 
+### v1.0.0:
+- instead of providing a dataloader argument to the modelManger provide dataloader_info according to the example above
+
+### v1.0.1
+* abstracted more fns into 

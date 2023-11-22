@@ -37,17 +37,17 @@ class WMLTextModelManagerOne():
     self.dropout = kwargs.get("dropout", 0.1)
     self.reporting_loss = kwargs.get("reporting_loss", 100)
     self.learning_rate = kwargs.get("learning_rate", 3e-4)
-    self.model_name = kwargs.get("model_name",'model-02.pkl')
+    self.model_file_name = kwargs.get("model_file_name",'model-02.pkl')
     self.training_dataloader = kwargs.get("training_dataloader",None)
     self.test_dataloader = kwargs.get("test_dataloader",None)
     self.dataloader_info = kwargs.get("dataloader_info",None)
 
 
-  def chat_with_model(self):
+  def chat_with_model(self,completion_size=150):
     while True:
         prompt = input("Prompt:\n")
         context = torch.tensor(self.encode(prompt), dtype=torch.long, device=self.device)
-        generated_chars = self.decode(self.m.generate(context.unsqueeze(0), max_new_tokens=150)[0].tolist())
+        generated_chars = self.decode(self.m.generate(context.unsqueeze(0), max_new_tokens=completion_size)[0].tolist())
         print(f'Completion:\n{generated_chars}')
 
   def load_model_from_scratch(self):
@@ -63,13 +63,13 @@ class WMLTextModelManagerOne():
     self.m = self.model.to(self.device)
 
   def load_model_from_file(self):
-    with open(self.model_name, 'rb') as f:
+    with open(self.model_file_name, 'rb') as f:
         self.model = pickle.load(f)
     print('loaded successfully!')
     self.m = self.model.to(self.device)
 
   def save_model_to_pickle(self):
-    with open(self.model_name,'wb') as f:
+    with open(self.model_file_name,'wb') as f:
       pickle.dump(self.model,f)
 
   def download_train_and_test_data(self):
@@ -83,13 +83,14 @@ class WMLTextModelManagerOne():
         training_dataloader_info["split"] = "train"
 
 
-        test_dataloader_info = self.dataloader_info
-        test_dataloader_info["split"] = "test"
 
 
         self.training_dataloader = WMLDataset(
           dataloader_info = training_dataloader_info,
         )
+
+        test_dataloader_info = self.dataloader_info
+        test_dataloader_info["split"] = "test"
 
         self.test_dataloader = WMLDataset(
           dataloader_info = test_dataloader_info,
@@ -149,10 +150,11 @@ class WMLTextModelManagerOne():
     print("Starting Training Session")
     context = torch.zeros((1,1), dtype=torch.long, device=self.device)
     generated_chars = self.decode(self.m.generate(context, max_new_tokens=self.vocab_size)[0].tolist())
-
+    self._estimate_loss()
+    self._create_optimizer()
 
   @torch.no_grad()
-  def estimate_loss(self):
+  def _estimate_loss(self):
       out = {}
       self.model.eval()
       for split in ['train', 'val']:
@@ -165,7 +167,7 @@ class WMLTextModelManagerOne():
       self.model.train()
       return out
 
-  def create_optimizer(self):
+  def _create_optimizer(self):
     # create a PyTorch optimizer
     optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.learning_rate)
 
@@ -174,7 +176,7 @@ class WMLTextModelManagerOne():
     for iter in tqdm(range(self.max_iters),total=self.max_iters):
         self.iters_left = self.max_iters - iter
         if iter % self.reporting_loss == 0:
-            losses = self.estimate_loss()
+            losses = self._estimate_loss()
             end_time = time.time()
             elapsed_time_seconds = end_time - start_time
             hours, remainder = divmod(elapsed_time_seconds, 3600)
