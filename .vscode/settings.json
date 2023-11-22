@@ -1,5 +1,5 @@
 {
   "search.exclude": {
-    "python-libs/**":true
+    "site-packages/**":true
   },
 }

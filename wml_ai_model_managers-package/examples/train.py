@@ -1,10 +1,10 @@
 import os
 import threading
 from wml_ai_model_managers.text_model_manager_one.model_manager import WMLTextModelManagerOne
+from wml_ai_model_managers.text_model_manager_one.dataset import WMLDataset
 
 from wml_ai_model_managers.text_model_manager_zero.model_manager import WMLTextModelManagerZero
 from wml_ai_model_managers.vision_model_manager_zero.model_manager import WMLVisionModelManager0
-from wml_ai_model_managers.text_model_manager_one.dataset import WMLDataset
 from torchtext import datasets
 
 
@@ -37,26 +37,29 @@ def train_with_text_data_v0():
 def train_with_text_data_v1(myai=None):
   myai = myai if myai else WMLTextModelManagerOne(
     model_name="AmazonReviewFull.pkl",
-    training_dataloader= WMLDataset(
-      datapipe=datasets.AmazonReviewFull(
-        split="train"
-      )
-    ),
-    test_dataloader= WMLDataset(
-      datapipe=datasets.AmazonReviewFull(
-        split="test"
-      )
-    )
+    dataloader_info ={
+      "datapipe_fn":datasets.AmazonReviewFull,
+      "vocab_folder_path":"data/AmazonReviewFull",
+      "get_dataset":True
+    },
+    # training_dataloader= WMLDataset(
+    #   datapipe=datasets.AmazonReviewFull(
+    #     split="train"
+    #   )
+    # ),
+    # test_dataloader= WMLDataset(
+    #   datapipe=datasets.AmazonReviewFull(
+    #     split="test"
+    #   )
+    # )
   )
 
   myai.download_train_and_test_data()
-  myai.get_vocab_info()
-  myai.get_encoders()
   myai.load_model_from_scratch()
   myai.train()
   myai.estimate_loss()
   myai.create_optimizer()
-  myai.save_model()
+  myai.save_model_to_pickle()
 
 def train_with_several_datasets():
   myais = [
